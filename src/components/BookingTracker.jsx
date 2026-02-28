@@ -63,7 +63,7 @@ export default function BookingTracker({ onBack }) {
             <div style={{ marginBottom: 28 }}>
                 <button onClick={onBack} className="btn btn-outline btn-sm" style={{ marginBottom: 16 }}>← Back to Home</button>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <div style={{ width: 48, height: 48, background: 'linear-gradient(135deg, #e94f37, #ff6b4a)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(233,79,55,0.3)', flexShrink: 0 }}>
+                    <div style={{ width: 48, height: 48, background: 'var(--primary)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-blue)', flexShrink: 0 }}>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                         </svg>

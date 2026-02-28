@@ -47,7 +47,7 @@ export default function BookingConfirmation({ result, flight, searchParams, onNe
         const W = doc.internal.pageSize.getWidth();
 
         // Header
-        doc.setFillColor(15, 52, 96);
+        doc.setFillColor(20, 27, 33);
         doc.rect(0, 0, W, 30, 'F');
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(18);
@@ -61,7 +61,7 @@ export default function BookingConfirmation({ result, flight, searchParams, onNe
         let y = 38;
 
         // Booking Reference Box
-        doc.setFillColor(240, 244, 255);
+        doc.setFillColor(235, 244, 255);
         doc.roundedRect(10, y, W - 20, 28, 3, 3, 'F');
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(13);
@@ -77,7 +77,7 @@ export default function BookingConfirmation({ result, flight, searchParams, onNe
         // Flight Details
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(12);
-        doc.setFillColor(233, 79, 55);
+        doc.setFillColor(20, 126, 251);
         doc.setTextColor(255, 255, 255);
         doc.rect(10, y, W - 20, 8, 'F');
         doc.text('  FLIGHT DETAILS', 10, y + 6);
@@ -101,7 +101,7 @@ export default function BookingConfirmation({ result, flight, searchParams, onNe
         // Passengers
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(12);
-        doc.setFillColor(15, 52, 96);
+        doc.setFillColor(20, 27, 33);
         doc.setTextColor(255, 255, 255);
         doc.rect(10, y, W - 20, 8, 'F');
         doc.text('  PASSENGER INFORMATION', 10, y + 6);
@@ -158,7 +158,7 @@ export default function BookingConfirmation({ result, flight, searchParams, onNe
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(12);
         doc.text('TOTAL:', 15, y + 2);
-        doc.setTextColor(15, 52, 96);
+        doc.setTextColor(20, 126, 251);
         doc.text(`${currency} ${fmt(total)}`, W - 15, y + 2, { align: 'right' });
         y += 10;
 

@@ -23,7 +23,7 @@ function Field({ label, required, children, error }) {
 
 function PassengerForm({ index, paxType, data, onChange, errors }) {
     const labels = { ADT: `Adult ${index + 1}`, CHD: `Child ${index + 1}`, INF: `Infant ${index + 1}` };
-    const colors = { ADT: 'var(--primary)', CHD: 'var(--sky)', INF: '#8b5cf6' };
+    const colors = { ADT: '#147EFB', CHD: '#3b82f6', INF: '#8b5cf6' };
 
     return (
         <div className="card" style={{ overflow: 'hidden', marginBottom: 16 }}>

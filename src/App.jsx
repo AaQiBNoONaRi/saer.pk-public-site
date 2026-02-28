@@ -7,7 +7,9 @@ import BookingTracker from './components/BookingTracker';
 import BlogList from './components/BlogList';
 import BlogArticle from './components/BlogArticle';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import StandaloneFormPage from './components/StandaloneFormPage';
+import PublicPackagesList from './components/PublicPackagesList';
 
 export default function App() {
   // home | results | booking | confirmation | tracker | blog | article
@@ -66,52 +68,66 @@ export default function App() {
     setPage('article');
   };
 
+  const navigateTo = (target) => {
+    if (target === 'home') handleReset();
+    else setPage(target);
+  };
+
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Navbar
         onLogoClick={handleReset}
         onTrackBooking={() => setPage('tracker')}
         onBlogClick={() => setPage('blog')}
+        onPackagesClick={() => setPage('packages')}
       />
 
-      {page === 'home' && <HeroSearch onSearch={handleSearch} />}
-      {page === 'results' && (
-        <FlightResults
-          results={results}
-          searchParams={searchParams}
-          onSelect={handleSelectFlight}
-          onNewSearch={handleReset}
-        />
-      )}
-      {page === 'booking' && (
-        <BookingForm
-          flight={selectedFlight}
-          validatedData={validatedData}
-          searchParams={searchParams}
-          onComplete={handleBookingComplete}
-          onBack={() => setPage('results')}
-        />
-      )}
-      {page === 'confirmation' && (
-        <BookingConfirmation
-          result={bookingResult}
-          flight={selectedFlight}
-          searchParams={searchParams}
-          onNewSearch={handleReset}
-        />
-      )}
-      {page === 'tracker' && (
-        <BookingTracker onBack={handleReset} />
-      )}
-      {page === 'blog' && (
-        <BlogList onReadArticle={handleReadArticle} />
-      )}
-      {page === 'article' && (
-        <BlogArticle slug={selectedArticleSlug} onBack={() => setPage('blog')} />
-      )}
-      {page === 'form' && (
-        <StandaloneFormPage slug={formSlug} onBack={handleReset} />
-      )}
+      <main style={{ flex: 1 }}>
+        {page === 'home' && <HeroSearch onSearch={handleSearch} />}
+        {page === 'results' && (
+          <FlightResults
+            results={results}
+            searchParams={searchParams}
+            onSelect={handleSelectFlight}
+            onNewSearch={handleReset}
+            onSearch={handleSearch}
+          />
+        )}
+        {page === 'booking' && (
+          <BookingForm
+            flight={selectedFlight}
+            validatedData={validatedData}
+            searchParams={searchParams}
+            onComplete={handleBookingComplete}
+            onBack={() => setPage('results')}
+          />
+        )}
+        {page === 'confirmation' && (
+          <BookingConfirmation
+            result={bookingResult}
+            flight={selectedFlight}
+            searchParams={searchParams}
+            onNewSearch={handleReset}
+          />
+        )}
+        {page === 'packages' && (
+          <PublicPackagesList onBack={handleReset} />
+        )}
+        {page === 'tracker' && (
+          <BookingTracker onBack={handleReset} />
+        )}
+        {page === 'blog' && (
+          <BlogList onReadArticle={handleReadArticle} />
+        )}
+        {page === 'article' && (
+          <BlogArticle slug={selectedArticleSlug} onBack={() => setPage('blog')} />
+        )}
+        {page === 'form' && (
+          <StandaloneFormPage slug={formSlug} onBack={handleReset} />
+        )}
+      </main>
+
+      <Footer onNavigate={navigateTo} />
     </div>
   );
 }

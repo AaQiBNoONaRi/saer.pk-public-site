@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Info, Luggage, Utensils, Layers, AlertCircle, Plane } from 'lucide-react';
+import HeroSearch from './HeroSearch';
 
 const API = 'http://localhost:8000/api/flight-search';
 
@@ -555,7 +556,7 @@ function FilterPanel({ flights, filters, onChange }) {
 
     return (
         <div className="card" style={{ padding: 20, position: 'sticky', top: 80 }}>
-            
+
             {/* Price Range */}
             <div style={{ marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -625,7 +626,7 @@ function FilterPanel({ flights, filters, onChange }) {
 }
 
 // ── Main Results Page ──────────────────────────────────────────────────────────
-export default function FlightResults({ results, searchParams, onSelect, onNewSearch }) {
+export default function FlightResults({ results, searchParams, onSelect, onNewSearch, onSearch }) {
     const [sort, setSort] = useState('cheapest');
     const [filters, setFilters] = useState({ stops: 'Any', airlines: [], refundableOnly: false, maxPrice: null });
     const [showFilters, setShowFilters] = useState(false); // mobile
@@ -709,9 +710,14 @@ export default function FlightResults({ results, searchParams, onSelect, onNewSe
 
     return (
         <div style={{ maxWidth: 1240, margin: '0 auto', padding: '24px' }}>
+            {/* Search Component */}
+            <div style={{ marginBottom: 32 }}>
+                <HeroSearch onSearch={onSearch} compact={true} />
+            </div>
+
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-                <button onClick={onNewSearch} className="btn btn-outline btn-sm">← New Search</button>
+                <button onClick={onNewSearch} className="btn btn-outline btn-sm">← Back to Home</button>
                 <div>
                     <div style={{ fontWeight: 800, fontSize: 18 }}>
                         {from && to ? `${from} → ${to}` : 'Flight Results'}
@@ -721,7 +727,7 @@ export default function FlightResults({ results, searchParams, onSelect, onNewSe
                         {searchParams?.departurDate ? ` · ${searchParams.departureDate}` : ''}
                     </div>
                 </div>
-                
+
             </div>
 
             {/* Sort Bar */}
@@ -733,11 +739,13 @@ export default function FlightResults({ results, searchParams, onSelect, onNewSe
                     { id: 'earliest', label: 'Earliest' },
                 ].map(({ id, label }) => (
                     <button key={id} onClick={() => setSort(id)} style={{
-                        padding: '7px 18px', borderRadius: 99, border: '1.5px solid',
+                        padding: '7px 20px', borderRadius: 999, border: '1.5px solid',
                         borderColor: sort === id ? 'var(--primary)' : 'var(--border)',
                         background: sort === id ? 'var(--primary)' : '#fff',
                         color: sort === id ? '#fff' : 'var(--text)',
-                        cursor: 'pointer', fontSize: 12, fontWeight: 600, transition: 'var(--transition)',
+                        cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'var(--transition)',
+                        fontFamily: 'inherit',
+                        boxShadow: sort === id ? '0 4px 12px rgba(20,126,251,0.25)' : 'none',
                     }}>{label}</button>
                 ))}
             </div>

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import PublicPackagesList from './PublicPackagesList';
 
 const API = 'http://localhost:8000/api/flight-search';
 
@@ -66,7 +67,7 @@ const POPULAR = [
     { code: 'MEL', name: 'Melbourne', country: 'AU', full: 'Melbourne Airport' },
 ];
 
-function AirportInput({ value, onChange, placeholder, exclude }) {
+function AirportInput({ value, onChange, placeholder, exclude, inputStyle = {} }) {
     const [query, setQuery] = useState(value);
     const [open, setOpen] = useState(false);
     const [filtered, setFiltered] = useState([]);
@@ -93,6 +94,9 @@ function AirportInput({ value, onChange, placeholder, exclude }) {
         setOpen(false);
     };
 
+    // determine if embedded (no-border) mode based on inputStyle
+    const isEmbedded = inputStyle.border === 'none';
+
     return (
         <div ref={ref} style={{ position: 'relative', flex: 1 }}>
             <input
@@ -100,12 +104,21 @@ function AirportInput({ value, onChange, placeholder, exclude }) {
                 onChange={e => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange('', null); }}
                 onFocus={() => setOpen(true)}
                 placeholder={placeholder}
-                style={{ padding: '14px 16px 14px 48px', fontSize: 15, fontWeight: 500 }}
+                style={isEmbedded
+                    ? { padding: 0, fontSize: 15, fontWeight: 600, border: 'none', background: 'transparent', boxShadow: 'none', width: '100%', outline: 'none', ...inputStyle }
+                    : { padding: '14px 16px 14px 48px', fontSize: 15, fontWeight: 500 }
+                }
             />
-            <span style={{
-                position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
-                fontSize: 18, pointerEvents: 'none',
-            }}>✈️</span>
+            {!isEmbedded && (
+                <span style={{
+                    position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
+                    pointerEvents: 'none', display: 'flex', alignItems: 'center',
+                }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" />
+                    </svg>
+                </span>
+            )}
             {open && filtered.length > 0 && (
                 <div style={{
                     position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
@@ -159,7 +172,11 @@ function TravelersDropdown({ value, onChange }) {
                 fontSize: 15, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 8,
                 transition: 'var(--transition)',
             }}>
-                <span style={{ fontSize: 18 }}>👤</span>
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                    </svg>
+                </span>
                 {total} Traveler{total !== 1 ? 's' : ''} · {value.cabin}
             </button>
             {open && (
@@ -206,7 +223,7 @@ function TravelersDropdown({ value, onChange }) {
 }
 
 // ── Main Hero ──────────────────────────────────────────────────────────────────
-export default function HeroSearch({ onSearch }) {
+export default function HeroSearch({ onSearch, compact = false }) {
     const [tripType, setTripType] = useState('oneway');
     const [from, setFrom] = useState('');
     const [to, setTo] = useState('');
@@ -294,197 +311,477 @@ export default function HeroSearch({ onSearch }) {
     const btnStyle = (active) => ({
         padding: '10px 24px', borderRadius: 99, border: 'none', cursor: 'pointer',
         fontWeight: 700, fontSize: 14, letterSpacing: 0.3, transition: 'var(--transition)',
-        background: active ? 'var(--primary)' : 'rgba(255,255,255,0.12)',
-        color: active ? '#fff' : 'rgba(255,255,255,0.75)',
-        boxShadow: active ? '0 4px 12px rgba(15,52,96,0.4)' : 'none',
+        background: active ? 'var(--primary)' : 'rgba(255,255,255,0.10)',
+        color: active ? '#fff' : 'rgba(255,255,255,0.65)',
+        boxShadow: active ? '0 4px 14px rgba(20,126,251,0.4)' : 'none',
+        fontFamily: 'inherit',
     });
 
-    return (
+    const newHeroBanner = (
         <div style={{ position: 'relative', overflow: 'hidden' }}>
-            {/* Hero Background */}
+            {/* Hero Banner */}
             <div style={{
-                background: 'linear-gradient(135deg, #0f3460 0%, #16213e 40%, #0f3460 70%, #1a4a8a 100%)',
-                padding: '80px 24px 120px',
-                textAlign: 'center',
                 position: 'relative',
+                minHeight: 580,
+                display: 'flex',
+                alignItems: 'center',
                 overflow: 'hidden',
+                background: '#0a0f14',
             }}>
-                {/* Decorative circles */}
-                {[
-                    { size: 400, top: -100, left: -100, opacity: 0.06 },
-                    { size: 300, top: -50, right: -80, opacity: 0.08 },
-                    { size: 200, bottom: 0, left: '30%', opacity: 0.05 },
-                ].map((c, i) => (
-                    <div key={i} style={{
-                        position: 'absolute', width: c.size, height: c.size,
-                        borderRadius: '50%', border: '2px solid rgba(255,255,255,0.15)',
-                        top: c.top, left: c.left, right: c.right, bottom: c.bottom,
-                        pointerEvents: 'none',
-                    }} />
-                ))}
-
-                {/* Floating plane icons */}
+                {/* Background Image */}
                 <div style={{
-                    position: 'absolute', top: 40, left: '10%', opacity: 0.15,
-                    animation: 'float 6s ease-in-out infinite', fontSize: 32,
-                }}>✈</div>
+                    position: 'absolute', inset: 0,
+                    backgroundImage: 'url(/kaaba-hero.png)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center 40%',
+                    filter: 'brightness(0.35)',
+                }} />
+                {/* Gradient overlay */}
                 <div style={{
-                    position: 'absolute', top: 60, right: '12%', opacity: 0.12,
-                    animation: 'float 8s ease-in-out infinite 2s', fontSize: 24,
-                }}>✈</div>
+                    position: 'absolute', inset: 0,
+                    background: 'linear-gradient(135deg, rgba(10,15,20,0.95) 0%, rgba(10,15,20,0.7) 50%, rgba(10,15,20,0.4) 100%)',
+                }} />
+                {/* Subtle geometric pattern */}
+                <div style={{
+                    position: 'absolute', inset: 0,
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                    opacity: 0.5,
+                }} />
 
-                <div style={{ maxWidth: 700, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-                    <div style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 8,
-                        background: 'rgba(0,180,216,0.15)', border: '1px solid rgba(0,180,216,0.3)',
-                        padding: '6px 16px', borderRadius: 99, marginBottom: 20,
-                    }}>
-                        <span style={{ color: '#90e0ef', fontSize: 13, fontWeight: 700, letterSpacing: 1 }}>✦ Book Now, Fly Smart</span>
+                {/* Content */}
+                <div style={{
+                    position: 'relative', zIndex: 2,
+                    maxWidth: 1200, margin: '0 auto', width: '100%',
+                    padding: '80px 48px',
+                    display: 'flex', alignItems: 'center',
+                    justifyContent: 'space-between', gap: 48,
+                }}>
+                    {/* Left: headline + tagline */}
+                    <div style={{ flex: '0 0 auto', maxWidth: 540 }}>
+                        {/* Trust badge */}
+                        <div style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 8,
+                            background: 'rgba(20,126,251,0.1)', border: '1px solid rgba(20,126,251,0.25)',
+                            padding: '6px 16px', borderRadius: 999,
+                            fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase',
+                            color: 'var(--primary)', marginBottom: 28,
+                        }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            </svg>
+                            Trusted by Thousands
+                        </div>
+
+                        <h1 style={{
+                            fontSize: 'clamp(32px, 4.2vw, 54px)',
+                            fontWeight: 900, color: '#fff',
+                            lineHeight: 1.12, marginBottom: 22,
+                            letterSpacing: '-1px',
+                        }}>
+                            Your Complete<br />
+                            <span style={{ color: 'var(--gold)' }}>Hajj & Umrah</span><br />
+                            Solution
+                        </h1>
+                        <p style={{
+                            fontSize: 16, color: 'rgba(255,255,255,0.6)',
+                            fontWeight: 400, lineHeight: 1.75,
+                            marginBottom: 36, maxWidth: 420,
+                        }}>
+                            Premium Umrah packages, competitive flight deals, and
+                            worry-free travel arrangements. Trusted by pilgrims across Pakistan.
+                        </p>
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                            <button
+                                onClick={() => document.getElementById('search-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                                style={{
+                                    background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))', // <-- Updated
+                                    color: '#fff', border: 'none',
+                                    borderRadius: 12, padding: '16px 36px',
+                                    fontSize: 15, fontWeight: 700,
+                                    cursor: 'pointer', fontFamily: 'inherit',
+                                    boxShadow: '0 8px 28px rgba(20,126,251,0.45)', // <-- Updated to primary blue RGBA
+                                    transition: 'all 0.2s',
+                                    display: 'inline-flex', alignItems: 'center', gap: 10,
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 36px rgba(20,126,251,0.5)'; }} // <-- Updated
+                                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(20,126,251,0.45)'; }} // <-- Updated
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                </svg>
+                                Search Flights
+                            </button>
+                            <button
+                                onClick={() => document.querySelector('[data-packages-section]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                                style={{
+                                    background: 'transparent',
+                                    color: '#fff', border: '1.5px solid rgba(255,255,255,0.2)',
+                                    borderRadius: 12, padding: '15px 28px',
+                                    fontSize: 14, fontWeight: 600,
+                                    cursor: 'pointer', fontFamily: 'inherit',
+                                    transition: 'all 0.2s',
+                                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
+                            >
+                                View Packages
+                            </button>
+                        </div>
                     </div>
-                    <h1 style={{
-                        fontSize: 'clamp(32px, 6vw, 58px)', fontWeight: 900, color: '#fff',
-                        lineHeight: 1.1, marginBottom: 16, letterSpacing: -1,
+
+                    {/* Right: floating stat cards */}
+                    <div className="hide-mobile" style={{
+                        flex: '0 0 auto',
+                        display: 'flex', flexDirection: 'column', gap: 16,
+                        width: 'clamp(240px, 30vw, 340px)',
                     }}>
-                        Find Your <span style={{ color: '#e94f37' }}>Perfect</span> Flight
-                    </h1>
-                    <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.65)', fontWeight: 400, marginBottom: 40 }}>
-                        Search hundreds of airlines and book with confidence
-                    </p>
+                        {[
+                            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>, value: '10,000+', label: 'Pilgrims Served' },
+                            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>, value: '50+', label: 'Partner Hotels' },
+                            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>, value: '100%', label: 'Secure Booking' },
+                        ].map(({ icon, value, label }, i) => (
+                            <div key={i} style={{
+                                background: 'rgba(255,255,255,0.05)',
+                                backdropFilter: 'blur(16px)',
+                                border: '1px solid rgba(255,255,255,0.08)',
+                                borderRadius: 16, padding: '18px 22px',
+                                display: 'flex', alignItems: 'center', gap: 16,
+                                animation: `fadeIn 0.5s ease ${i * 0.15}s both`,
+                            }}>
+                                <div style={{
+                                    width: 44, height: 44, borderRadius: 12,
+                                    background: 'rgba(200,169,81,0.1)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    flexShrink: 0,
+                                }}>{icon}</div>
+                                <div>
+                                    <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', lineHeight: 1.1 }}>{value}</div>
+                                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 600, marginTop: 2 }}>{label}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Wave divider */}
-                <svg viewBox="0 0 1440 60" style={{ position: 'absolute', bottom: -1, left: 0, right: 0, width: '100%' }} preserveAspectRatio="none">
+                <svg viewBox="0 0 1440 60" style={{ position: 'absolute', bottom: -1, left: 0, right: 0, width: '100%', zIndex: 3 }} preserveAspectRatio="none">
                     <path d="M0,60V20C360,60,720,0,1440,30V60H0Z" fill="var(--bg)" />
                 </svg>
             </div>
+        </div>
+    );
 
-            {/* Search Card */}
-            <div style={{ maxWidth: 1000, margin: '-60px auto 40px', padding: '0 24px', position: 'relative', zIndex: 10 }}>
-                <div className="card-lg" style={{ padding: 28 }}>
-                    {/* Trip Type Toggle */}
-                    <div style={{
-                        display: 'flex', gap: 8, marginBottom: 24,
-                        background: '#f0f4f8', padding: 5, borderRadius: 99, width: 'fit-content',
-                    }}>
-                        {[
-                            { id: 'oneway', label: '→ One Way' },
-                            { id: 'return', label: '⇄ Return' },
-                            { id: 'multicity', label: '⤴ Multi-City' },
-                        ].map(({ id, label }) => (
-                            <button key={id} onClick={() => setTripType(id)} style={{
-                                padding: '9px 22px', borderRadius: 99, border: 'none', cursor: 'pointer',
-                                fontWeight: 700, fontSize: 13, letterSpacing: 0.2, transition: 'var(--transition)',
-                                background: tripType === id ? '#fff' : 'transparent',
-                                color: tripType === id ? 'var(--primary)' : 'var(--text-muted)',
-                                boxShadow: tripType === id ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
-                            }}>{label}</button>
-                        ))}
-                    </div>
+    const searchFormBlock = (
+        <div id="search-card" style={{ maxWidth: 1080, margin: compact ? '0 auto' : '-56px auto 48px', padding: compact ? '0' : '0 24px', position: 'relative', zIndex: 10 }}>
+            <div style={{
+                background: '#fff',
+                borderRadius: 20,
+                boxShadow: '0 20px 60px rgba(20,27,33,0.13), 0 4px 16px rgba(20,27,33,0.06)',
+                overflow: 'visible',
+            }}>
+                {/* ── Tabs row ── */}
+                <div style={{
+                    display: 'flex', alignItems: 'center',
+                    padding: '0 28px',
+                    borderBottom: '1px solid #f0f4f8',
+                    gap: 0,
+                }}>
+                    {[
+                        { id: 'oneway', label: 'One Way' },
+                        { id: 'return', label: 'Return' },
+                        { id: 'multicity', label: 'Multi-City' },
+                    ].map(({ id, label }) => (
+                        <button
+                            key={id}
+                            onClick={() => setTripType(id)}
+                            style={{
+                                padding: '18px 22px',
+                                border: 'none', background: 'none',
+                                cursor: 'pointer', fontFamily: 'inherit',
+                                fontSize: 14, fontWeight: tripType === id ? 700 : 500,
+                                color: tripType === id ? 'var(--primary)' : '#94a3b8',
+                                borderBottom: tripType === id ? '2.5px solid var(--primary)' : '2.5px solid transparent',
+                                marginBottom: -1,
+                                transition: 'all 0.15s',
+                                letterSpacing: 0.1,
+                            }}
+                            onMouseEnter={e => { if (tripType !== id) e.currentTarget.style.color = 'var(--text)'; }}
+                            onMouseLeave={e => { if (tripType !== id) e.currentTarget.style.color = '#94a3b8'; }}
+                        >{label}</button>
+                    ))}
+                </div>
+
+                {/* ── Form body ── */}
+                <div style={{ padding: '24px 28px 28px' }}>
 
                     {tripType !== 'multicity' ? (
-                        /* One Way / Return */
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                            <div style={{ display: 'flex', gap: 14, alignItems: 'stretch', flexWrap: 'wrap' }}>
-                                <AirportInput
-                                    value={from ? `${fromInfo?.name || ''} (${from})` : ''}
-                                    onChange={(code, info) => { setFrom(code); setFromInfo(info); }}
-                                    placeholder="From — Origin city or airport"
-                                    exclude={to}
-                                />
-                                <button
-                                    onClick={() => { const tmp = from; setFrom(to); setTo(tmp); const ti = fromInfo; setFromInfo(toInfo); setToInfo(ti); }}
-                                    style={{
-                                        width: 42, height: 42, borderRadius: '50%', border: '1.5px solid var(--border)',
-                                        background: '#fff', cursor: 'pointer', fontSize: 16, display: 'flex',
-                                        alignItems: 'center', justifyContent: 'center', alignSelf: 'center', flexShrink: 0,
-                                        transition: 'var(--transition)', color: 'var(--primary)', fontWeight: 700,
-                                    }}
-                                    onMouseEnter={e => e.currentTarget.style.background = '#f0f4f8'}
-                                    onMouseLeave={e => e.currentTarget.style.background = '#fff'}
-                                >⇄</button>
-                                <AirportInput
-                                    value={to ? `${toInfo?.name || ''} (${to})` : ''}
-                                    onChange={(code, info) => { setTo(code); setToInfo(info); }}
-                                    placeholder="To — Destination city or airport"
-                                    exclude={from}
-                                />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                            {/* Row 1 — From / swap / To */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 40px 1fr', alignItems: 'end', gap: 0 }}>
+                                {/* From */}
+                                <div style={{
+                                    background: '#f8fafc', border: '1.5px solid #e2e8f0',
+                                    borderRadius: '12px 0 0 12px', padding: '12px 16px',
+                                    position: 'relative', cursor: 'text',
+                                    borderRight: 'none',
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                                            <circle cx="12" cy="12" r="10" /><path d="M12 8v4l3 3" />
+                                        </svg>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>From</div>
+                                            <AirportInput
+                                                value={from ? `${fromInfo?.name || ''} (${from})` : ''}
+                                                onChange={(code, info) => { setFrom(code); setFromInfo(info); }}
+                                                placeholder="City or airport"
+                                                exclude={to}
+                                                inputStyle={{
+                                                    border: 'none', background: 'transparent', padding: 0,
+                                                    fontSize: 15, fontWeight: 600, color: 'var(--text)',
+                                                    boxShadow: 'none',
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Swap button */}
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', borderTop: '1.5px solid #e2e8f0', borderBottom: '1.5px solid #e2e8f0', height: '100%', zIndex: 2 }}>
+                                    <button
+                                        onClick={() => { const tmp = from; setFrom(to); setTo(tmp); const ti = fromInfo; setFromInfo(toInfo); setToInfo(ti); }}
+                                        style={{
+                                            width: 32, height: 32, borderRadius: '50%',
+                                            border: '1.5px solid #e2e8f0',
+                                            background: '#fff', cursor: 'pointer',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            transition: 'all 0.15s', color: 'var(--primary)',
+                                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                        }}
+                                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--primary)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'var(--primary)'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = 'var(--primary)'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
+                                        title="Swap airports"
+                                    >
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                {/* To */}
+                                <div style={{
+                                    background: '#f8fafc', border: '1.5px solid #e2e8f0',
+                                    borderRadius: '0 12px 12px 0', padding: '12px 16px',
+                                    borderLeft: 'none',
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                                        </svg>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>To</div>
+                                            <AirportInput
+                                                value={to ? `${toInfo?.name || ''} (${to})` : ''}
+                                                onChange={(code, info) => { setTo(code); setToInfo(info); }}
+                                                placeholder="City or airport"
+                                                exclude={from}
+                                                inputStyle={{
+                                                    border: 'none', background: 'transparent', padding: 0,
+                                                    fontSize: 15, fontWeight: 600, color: 'var(--text)',
+                                                    boxShadow: 'none',
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-                                <div style={{ flex: 1, minWidth: 150, position: 'relative' }}>
-                                    <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 18, pointerEvents: 'none' }}>📅</span>
-                                    <input
-                                        type="date" value={depDate} min={today}
-                                        onChange={e => setDepDate(e.target.value)}
-                                        style={{ padding: '14px 14px 14px 44px', fontSize: 15 }}
-                                    />
+                            {/* Row 2 — Depart / Return / Travellers + Search btn */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 12, alignItems: 'end' }}>
+
+                                {/* Depart date */}
+                                <div style={{
+                                    background: '#f8fafc', border: '1.5px solid #e2e8f0',
+                                    borderRadius: 12, padding: '12px 16px', cursor: 'pointer',
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                                        </svg>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>Depart</div>
+                                            <input
+                                                type="date" value={depDate} min={today}
+                                                onChange={e => setDepDate(e.target.value)}
+                                                style={{
+                                                    border: 'none', background: 'transparent', padding: 0,
+                                                    fontSize: 14, fontWeight: 600, color: depDate ? 'var(--text)' : '#94a3b8',
+                                                    boxShadow: 'none', width: '100%', cursor: 'pointer',
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div style={{ flex: 1, minWidth: 150, position: 'relative' }}>
-                                    <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 18, pointerEvents: 'none' }}>📅</span>
-                                    <input
-                                        type="date" value={retDate} min={depDate || today}
-                                        onChange={e => setRetDate(e.target.value)}
-                                        disabled={tripType === 'oneway'}
-                                        style={{
-                                            padding: '14px 14px 14px 44px', fontSize: 15,
-                                            opacity: tripType === 'oneway' ? 0.45 : 1,
-                                            cursor: tripType === 'oneway' ? 'not-allowed' : 'pointer',
-                                        }}
-                                        placeholder={tripType === 'oneway' ? 'One-way trip' : 'Return date'}
-                                    />
+
+                                {/* Return date */}
+                                <div style={{
+                                    background: '#f8fafc',
+                                    border: `1.5px solid ${tripType === 'oneway' ? '#f0f4f8' : '#e2e8f0'}`,
+                                    borderRadius: 12, padding: '12px 16px',
+                                    opacity: tripType === 'oneway' ? 0.5 : 1,
+                                    cursor: tripType === 'oneway' ? 'not-allowed' : 'pointer',
+                                    position: 'relative',
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                                        </svg>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>Return</div>
+                                            {tripType === 'oneway' ? (
+                                                <div style={{ fontSize: 13, color: '#cbd5e1', fontWeight: 500 }}>One-way trip</div>
+                                            ) : (
+                                                <input
+                                                    type="date" value={retDate} min={depDate || new Date().toISOString().split('T')[0]}
+                                                    onChange={e => setRetDate(e.target.value)}
+                                                    style={{
+                                                        border: 'none', background: 'transparent', padding: 0,
+                                                        fontSize: 14, fontWeight: 600, color: retDate ? 'var(--text)' : '#94a3b8',
+                                                        boxShadow: 'none', width: '100%', cursor: 'pointer',
+                                                    }}
+                                                />
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                                <TravelersDropdown value={travelers} onChange={setTravelers} />
+
+                                {/* Travellers */}
+                                <div style={{
+                                    background: '#f8fafc', border: '1.5px solid #e2e8f0',
+                                    borderRadius: 12, padding: '12px 16px', cursor: 'pointer',
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                        </svg>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>Travellers & Class</div>
+                                            <TravelersDropdown value={travelers} onChange={setTravelers} inputStyle={{ border: 'none', background: 'transparent', padding: 0, fontSize: 14, fontWeight: 600, boxShadow: 'none' }} />
+                                        </div>
+                                    </div>
+                                </div>
+                                {/* End Travellers */}
                             </div>
+                            {/* End Row 2 */}
+
+                            {/* Search button */}
+                            <button
+                                onClick={handleSearch}
+                                disabled={searching}
+                                style={{
+                                    background: 'var(--primary)',
+                                    color: '#fff', border: 'none',
+                                    borderRadius: 12, padding: '0 32px',
+                                    height: 58, fontSize: 15, fontWeight: 700,
+                                    cursor: searching ? 'not-allowed' : 'pointer',
+                                    fontFamily: 'inherit',
+                                    display: 'flex', alignItems: 'center', gap: 10,
+                                    whiteSpace: 'nowrap', flexShrink: 0,
+                                    boxShadow: '0 8px 24px rgba(20,126,251,0.35)',
+                                    transition: 'all 0.2s',
+                                    opacity: searching ? 0.8 : 1,
+                                }}
+                                onMouseEnter={e => { if (!searching) { e.currentTarget.style.background = '#0f63d4'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(20,126,251,0.5)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'var(--primary)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(20,126,251,0.35)'; e.currentTarget.style.transform = 'none'; }}
+                            >
+                                {searching ? (
+                                    <>
+                                        <span style={{ width: 18, height: 18, border: '2.5px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
+                                        Searching...
+                                    </>
+                                ) : (
+                                    <>
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                        </svg>
+                                        Search
+                                    </>
+                                )}
+                            </button>
                         </div>
                     ) : (
-                        /* Multi-City */
+                        /* ── Multi-City ── */
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                             {segments.map((seg, i) => (
-                                <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                                <div key={i} style={{ display: 'grid', gridTemplateColumns: '28px 1fr 1fr auto auto', gap: 10, alignItems: 'center' }}>
                                     <div style={{
                                         width: 28, height: 28, borderRadius: '50%', background: 'var(--primary)',
                                         color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         fontWeight: 800, fontSize: 12, flexShrink: 0,
                                     }}>{i + 1}</div>
-                                    <div style={{ flex: 1, minWidth: 120 }}>
+                                    <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10, padding: '10px 14px' }}>
+                                        <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>From</div>
                                         <AirportInput
                                             value={seg.from ? `(${seg.from})` : ''}
                                             onChange={(code) => updateSegment(i, 'from', code)}
-                                            placeholder="From"
+                                            placeholder="City or airport"
                                             exclude={seg.to}
+                                            inputStyle={{ border: 'none', background: 'transparent', padding: 0, fontSize: 14, fontWeight: 600, boxShadow: 'none' }}
                                         />
                                     </div>
-                                    <div style={{ flex: 1, minWidth: 120 }}>
+                                    <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10, padding: '10px 14px' }}>
+                                        <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>To</div>
                                         <AirportInput
                                             value={seg.to ? `(${seg.to})` : ''}
                                             onChange={(code) => updateSegment(i, 'to', code)}
-                                            placeholder="To"
+                                            placeholder="City or airport"
                                             exclude={seg.from}
+                                            inputStyle={{ border: 'none', background: 'transparent', padding: 0, fontSize: 14, fontWeight: 600, boxShadow: 'none' }}
                                         />
                                     </div>
-                                    <div style={{ minWidth: 150 }}>
+                                    <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10, padding: '10px 14px' }}>
+                                        <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>Date</div>
                                         <input type="date" value={seg.date} min={today}
                                             onChange={e => updateSegment(i, 'date', e.target.value)}
-                                            style={{ padding: '12px 14px', fontSize: 14 }}
+                                            style={{ border: 'none', background: 'transparent', padding: 0, fontSize: 14, fontWeight: 600, boxShadow: 'none', width: 130, cursor: 'pointer' }}
                                         />
                                     </div>
-                                    {segments.length > 2 && (
+                                    {segments.length > 2 ? (
                                         <button onClick={() => setSegments(segments.filter((_, j) => j !== i))} style={{
-                                            width: 30, height: 30, borderRadius: '50%', border: '1px solid #fecaca',
-                                            background: '#fee2e2', color: '#ef4444', cursor: 'pointer', fontSize: 16,
+                                            width: 30, height: 30, borderRadius: '50%', border: '1.5px solid #fecaca',
+                                            background: '#fff', color: '#ef4444', cursor: 'pointer', fontSize: 18,
                                             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                                         }}>×</button>
-                                    )}
+                                    ) : <div style={{ width: 30 }} />}
                                 </div>
                             ))}
-                            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 4 }}>
                                 {segments.length < 5 && (
                                     <button onClick={() => setSegments([...segments, { from: '', to: '', date: '' }])} style={{
                                         padding: '8px 18px', borderRadius: 8, border: '1.5px dashed var(--border)',
-                                        background: '#f8fafc', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--primary)',
+                                        background: '#f8fafc', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                                        color: 'var(--primary)', fontFamily: 'inherit', transition: 'all 0.15s',
                                     }}>+ Add City</button>
                                 )}
-                                <TravelersDropdown value={travelers} onChange={setTravelers} />
+                                <div style={{ flex: 1 }}><TravelersDropdown value={travelers} onChange={setTravelers} /></div>
+                                <button
+                                    onClick={handleSearch}
+                                    disabled={searching}
+                                    style={{
+                                        background: 'var(--primary)', color: '#fff', border: 'none',
+                                        borderRadius: 10, padding: '11px 28px', fontSize: 14, fontWeight: 700,
+                                        cursor: 'pointer', fontFamily: 'inherit',
+                                        display: 'flex', alignItems: 'center', gap: 8,
+                                        boxShadow: '0 4px 16px rgba(20,126,251,0.3)',
+                                    }}
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                    </svg>
+                                    {searching ? 'Searching...' : 'Search Flights'}
+                                </button>
                             </div>
                         </div>
                     )}
@@ -492,68 +789,256 @@ export default function HeroSearch({ onSearch }) {
                     {/* Error */}
                     {error && (
                         <div style={{
-                            background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8,
-                            padding: '10px 14px', color: '#dc2626', fontSize: 14, fontWeight: 500,
-                            marginTop: 14, display: 'flex', alignItems: 'center', gap: 8,
-                        }}>⚠ {error}</div>
+                            marginTop: 14, background: '#fef2f2', border: '1px solid #fecaca',
+                            borderRadius: 8, padding: '10px 16px', color: '#dc2626',
+                            fontSize: 13, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 8,
+                        }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                            {error}
+                        </div>
                     )}
-
-                    {/* Search Button */}
-                    <button
-                        onClick={handleSearch}
-                        disabled={searching}
-                        className="btn btn-primary btn-xl"
-                        style={{ width: '100%', marginTop: 18, fontSize: 16, letterSpacing: 0.5 }}
-                    >
-                        {searching ? (
-                            <>
-                                <span className="spin" style={{ display: 'inline-block', width: 18, height: 18, border: '2.5px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%' }} />
-                                Searching Flights...
-                            </>
-                        ) : (
-                            <> 🔍 Search Flights</>
-                        )}
-                    </button>
                 </div>
 
-                {/* Popular routes */}
-                <div style={{ marginTop: 20, display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-                    <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500, alignSelf: 'center' }}>Popular:</span>
-                    {[['KHI', 'DXB'], ['LHE', 'JED'], ['ISB', 'KHI'], ['LHE', 'DOH']].map(([f, t]) => (
-                        <button key={`${f}-${t}`} onClick={() => {
-                            const fa = POPULAR.find(a => a.code === f);
-                            const ta = POPULAR.find(a => a.code === t);
-                            setFrom(f); setFromInfo(fa);
-                            setTo(t); setToInfo(ta);
-                            setTripType('oneway');
-                        }} style={{
-                            padding: '6px 14px', borderRadius: 99, border: '1px solid var(--border)',
-                            background: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                            color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 5,
-                            transition: 'var(--transition)',
+                {/* ── Popular routes bar ── */}
+                {compact === false && (
+                    <div style={{
+                        borderTop: '1px solid #f0f4f8',
+                        padding: '14px 28px',
+                        display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+                    }}>
+                        <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}>Popular</span>
+                        <div style={{ width: 1, height: 14, background: '#e2e8f0', flexShrink: 0 }} />
+                        {[['KHI', 'DXB'], ['LHE', 'JED'], ['ISB', 'KHI'], ['LHE', 'DOH'], ['KHI', 'RUH']].map(([f, t]) => (
+                            <button key={`${f}-${t}`} onClick={() => {
+                                const fa = POPULAR.find(a => a.code === f);
+                                const ta = POPULAR.find(a => a.code === t);
+                                setFrom(f); setFromInfo(fa); setTo(t); setToInfo(ta); setTripType('oneway');
+                            }} style={{
+                                padding: '5px 14px', borderRadius: 999,
+                                border: '1px solid #e2e8f0', background: '#f8fafc',
+                                cursor: 'pointer', fontSize: 12, fontWeight: 600,
+                                color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 6,
+                                transition: 'all 0.15s', fontFamily: 'inherit',
+                            }}
+                                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.color = 'var(--primary)'; e.currentTarget.style.background = 'rgba(20,126,251,0.04)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.background = '#f8fafc'; }}
+                            >
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" /></svg>
+                                {f} → {t}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+
+    if (compact) {
+        return (
+            <div style={{ background: '#fff', padding: '24px 0 32px' }}>
+                {searchFormBlock}
+            </div>
+        );
+    }
+
+    return (
+        <div style={{ background: 'var(--bg)' }}>
+            {newHeroBanner}
+
+            <div style={{ marginTop: -56, position: 'relative', zIndex: 10 }}>
+                {searchFormBlock}
+            </div>
+
+            {/* ── Trust / Features bar ── */}
+            <div style={{ maxWidth: 1200, margin: '48px auto 0', padding: '0 24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
+                    {[
+                        { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>, title: 'Secure Booking', desc: 'SSL encrypted & safe payments' },
+                        { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" /></svg>, title: 'All Airlines', desc: 'Compare every major carrier' },
+                        { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>, title: 'Best Fares', desc: 'Guaranteed lowest prices' },
+                        { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3-8.59A2 2 0 0 1 3.68 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" /></svg>, title: '24/7 Support', desc: 'Always here when you need us' },
+                    ].map(({ icon, title, desc }) => (
+                        <div key={title} style={{
+                            background: '#fff', borderRadius: 16,
+                            border: '1px solid rgba(226,232,240,0.8)',
+                            padding: '24px 20px',
+                            display: 'flex', alignItems: 'flex-start', gap: 16,
+                            boxShadow: '0 2px 8px rgba(20,27,33,0.04)',
+                            transition: 'all 0.25s',
                         }}
-                            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
-                        >✈ {f} → {t}</button>
+                            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 12px 32px rgba(20,27,33,0.08)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(20,27,33,0.04)'; e.currentTarget.style.transform = 'none'; }}
+                        >
+                            <div style={{ flexShrink: 0, width: 48, height: 48, background: 'rgba(20,126,251,0.08)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                {icon}
+                            </div>
+                            <div>
+                                <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--text)', marginBottom: 4 }}>{title}</div>
+                                <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>{desc}</div>
+                            </div>
+                        </div>
                     ))}
                 </div>
             </div>
 
-            {/* Features Section */}
-            <div style={{ maxWidth: 900, margin: '0 auto 80px', padding: '0 24px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+            {/* ── Featured Packages ── */}
+            <div data-packages-section style={{ padding: '80px 0 48px' }}>
+                <div style={{ textAlign: 'center', marginBottom: 48 }}>
+                    <div style={{ width: 48, height: 3, background: 'linear-gradient(90deg, var(--primary), var(--gold))', borderRadius: 2, margin: '0 auto 16px' }} />
+                    <h2 style={{ fontSize: 32, fontWeight: 900, margin: '0 0 12px', color: 'var(--text)', letterSpacing: '-0.5px' }}>Featured Umrah Packages</h2>
+                    <p style={{ fontSize: 16, color: 'var(--text-muted)', maxWidth: 480, margin: '0 auto', lineHeight: 1.7 }}>
+                        Carefully curated packages designed for a comfortable and spiritual journey
+                    </p>
+                </div>
+                <PublicPackagesList compact={true} />
+            </div>
+
+            {/* ── Why Choose Us ── */}
+            <div style={{ padding: '64px 0 80px', background: '#fff' }}>
+                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+                    <div style={{ textAlign: 'center', marginBottom: 56 }}>
+                        <div style={{ width: 48, height: 3, background: 'linear-gradient(90deg, var(--primary), var(--gold))', borderRadius: 2, margin: '0 auto 16px' }} />
+                        <h2 style={{ fontSize: 32, fontWeight: 900, margin: '0 0 12px', color: 'var(--text)', letterSpacing: '-0.5px' }}>Why Choose Saer.pk</h2>
+                        <p style={{ fontSize: 16, color: 'var(--text-muted)', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
+                            We go beyond booking to ensure every aspect of your pilgrimage is handled with care
+                        </p>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 28 }}>
+                        {[
+                            {
+                                icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" /></svg>,
+                                title: 'Expert Flight Booking',
+                                desc: 'Access to all major airlines with the best fares. Our flight search engine compares hundreds of options to find you the perfect itinerary.',
+                            },
+                            {
+                                icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
+                                title: 'Premium Hotels',
+                                desc: 'Handpicked hotels near Haram in Makkah and Masjid Nabawi in Madinah. Choose from economy to 5-star luxury accommodations.',
+                            },
+                            {
+                                icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" /></svg>,
+                                title: 'Dedicated Support',
+                                desc: 'Personal travel advisors available round the clock. From visa processing to ground transportation, we handle everything for you.',
+                            },
+                        ].map(({ icon, title, desc }, i) => (
+                            <div key={title} style={{
+                                background: 'var(--bg)', borderRadius: 20,
+                                padding: '36px 28px',
+                                border: '1px solid rgba(226,232,240,0.8)',
+                                transition: 'all 0.25s',
+                                animation: `fadeIn 0.5s ease ${i * 0.1}s both`,
+                            }}
+                                onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 16px 40px rgba(20,126,251,0.08)'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = 'rgba(20,126,251,0.15)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(226,232,240,0.8)'; }}
+                            >
+                                <div style={{
+                                    width: 56, height: 56, borderRadius: 14,
+                                    background: 'rgba(20,126,251,0.08)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    marginBottom: 24,
+                                }}>{icon}</div>
+                                <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', marginBottom: 10 }}>{title}</h3>
+                                <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.7, margin: 0 }}>{desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Stats Counter ── */}
+            <div style={{
+                background: 'var(--navy)',
+                padding: '56px 24px',
+                position: 'relative',
+                overflow: 'hidden',
+            }}>
+                {/* Subtle pattern */}
+                <div style={{
+                    position: 'absolute', inset: 0,
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                }} />
+                <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 32, position: 'relative', zIndex: 2 }}>
                     {[
-                        { icon: '🔒', title: 'Secure Booking', desc: 'SSL encrypted payment protection' },
-                        { icon: '✈', title: 'All Airlines', desc: 'Compare every major carrier' },
-                        { icon: '💰', title: 'Best Prices', desc: 'Guaranteed lowest fares' },
-                        { icon: '📞', title: '24/7 Support', desc: 'We\'re always here to help' },
-                    ].map(({ icon, title, desc }) => (
-                        <div className="card" key={title} style={{ padding: '20px 18px', textAlign: 'center' }}>
-                            <div style={{ fontSize: 28, marginBottom: 8 }}>{icon}</div>
-                            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{title}</div>
-                            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{desc}</div>
+                        { value: '10,000+', label: 'Pilgrims Served', icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg> },
+                        { value: '8+', label: 'Years Experience', icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg> },
+                        { value: '50+', label: 'Partner Hotels', icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg> },
+                        { value: '15+', label: 'Destinations', icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg> },
+                    ].map(({ value, label, icon }, i) => (
+                        <div key={label} style={{ textAlign: 'center', animation: `fadeIn 0.5s ease ${i * 0.1}s both` }}>
+                            <div style={{
+                                width: 52, height: 52, borderRadius: 14,
+                                background: 'rgba(200,169,81,0.1)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                margin: '0 auto 16px',
+                            }}>{icon}</div>
+                            <div style={{ fontSize: 36, fontWeight: 900, color: '#fff', letterSpacing: '-1px', lineHeight: 1 }}>{value}</div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.45)', marginTop: 6, textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</div>
                         </div>
                     ))}
+                </div>
+            </div>
+
+            {/* ── CTA Banner ── */}
+            {/* ── CTA Banner ── */}
+            <div style={{
+                background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)', // <-- Updated
+                padding: '72px 24px',
+                textAlign: 'center',
+                position: 'relative',
+                overflow: 'hidden',
+            }}>
+                <div style={{
+                    position: 'absolute', inset: 0,
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                }} />
+                <div style={{ position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto' }}>
+                    <h2 style={{ fontSize: 36, fontWeight: 900, color: '#fff', marginBottom: 16, letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+                        Start Your Sacred Journey Today
+                    </h2>
+                    <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, marginBottom: 36 }}>
+                        Let us help you plan the perfect Hajj or Umrah experience. Book your flights, hotels, and complete packages with confidence.
+                    </p>
+                    <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <button
+                            onClick={() => document.getElementById('search-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                            style={{
+                                background: '#fff', color: 'var(--primary)',
+                                border: 'none', borderRadius: 12,
+                                padding: '16px 36px', fontSize: 15, fontWeight: 700,
+                                cursor: 'pointer', fontFamily: 'inherit',
+                                display: 'inline-flex', alignItems: 'center', gap: 10,
+                                transition: 'all 0.2s',
+                                boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.2)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)'; }}
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            </svg>
+                            Search Flights
+                        </button>
+                        <button
+                            onClick={() => window.open('https://wa.me/92300000000', '_blank')}
+                            style={{
+                                background: 'transparent', color: '#fff',
+                                border: '1.5px solid rgba(255,255,255,0.3)',
+                                borderRadius: 12, padding: '15px 28px',
+                                fontSize: 14, fontWeight: 600,
+                                cursor: 'pointer', fontFamily: 'inherit',
+                                display: 'inline-flex', alignItems: 'center', gap: 8,
+                                transition: 'all 0.2s',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; }}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                                <path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 0 0 .611.611l4.458-1.495A11.947 11.947 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.345 0-4.513-.795-6.24-2.13l-.436-.348-3.13 1.049 1.049-3.13-.348-.436A9.946 9.946 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" />
+                            </svg>
+                            Chat on WhatsApp
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

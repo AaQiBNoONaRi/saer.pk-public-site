@@ -10,6 +10,8 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import StandaloneFormPage from './components/StandaloneFormPage';
 import PublicPackagesList from './components/PublicPackagesList';
+import UmrahPackageDetail from './components/UmrahPackageDetail';
+import CustomerBookingWizard from './components/CustomerBookingWizard';
 
 export default function App() {
   // home | results | booking | confirmation | tracker | blog | article
@@ -21,6 +23,9 @@ export default function App() {
   const [bookingResult, setBookingResult] = useState(null);
   const [selectedArticleSlug, setSelectedArticleSlug] = useState(null);
   const [formSlug, setFormSlug] = useState(null);
+  const [selectedPackageId, setSelectedPackageId] = useState(null);
+  const [selectedPackageForBooking, setSelectedPackageForBooking] = useState(null);
+  const [completedBooking, setCompletedBooking] = useState(null);
 
   React.useEffect(() => {
     // Basic routing for direct links
@@ -61,6 +66,21 @@ export default function App() {
     setValidatedData(null);
     setBookingResult(null);
     setSelectedArticleSlug(null);
+  };
+
+  const handleViewPackage = (id) => {
+    setSelectedPackageId(id);
+    setPage('packageDetail');
+  };
+
+  const handleBookPackage = (pkg) => {
+    setSelectedPackageForBooking(pkg);
+    setPage('umrahBooking');
+  };
+
+  const handleBookingDone = (bookingData) => {
+    setCompletedBooking(bookingData);
+    setPage('bookingSuccess');
   };
 
   const handleReadArticle = (slug) => {
@@ -111,7 +131,23 @@ export default function App() {
           />
         )}
         {page === 'packages' && (
-          <PublicPackagesList onBack={handleReset} />
+          <PublicPackagesList
+            onBack={handleReset}
+            onViewPackage={handleViewPackage}
+          />
+        )}
+        {page === 'packageDetail' && (
+          <UmrahPackageDetail
+            packageId={selectedPackageId}
+            onBack={() => setPage('packages')}
+            onBook={handleBookPackage}
+          />
+        )}
+        {page === 'umrahBooking' && selectedPackageForBooking && (
+          <CustomerBookingWizard
+            pkg={selectedPackageForBooking}
+            onBack={() => setPage('packageDetail')}
+          />
         )}
         {page === 'tracker' && (
           <BookingTracker onBack={handleReset} />

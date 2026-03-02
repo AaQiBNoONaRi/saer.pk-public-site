@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const API = 'http://localhost:8000/api/packages/public/list';
 
-export default function PublicPackagesList({ onBack, compact = false }) {
+export default function PublicPackagesList({ onBack, compact = false, onViewPackage }) {
     const [packages, setPackages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -134,7 +134,7 @@ export default function PublicPackagesList({ onBack, compact = false }) {
                 ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 24 }}>
                         {(compact ? packages.slice(0, 3) : packages).map(pkg => (
-                            <PackageCard key={pkg._id || pkg.id} pkg={pkg} formatPrice={formatPrice} />
+                            <PackageCard key={pkg._id || pkg.id} pkg={pkg} formatPrice={formatPrice} onViewPackage={onViewPackage} />
                         ))}
                     </div>
                 )}
@@ -143,7 +143,7 @@ export default function PublicPackagesList({ onBack, compact = false }) {
     );
 }
 
-function PackageCard({ pkg, formatPrice }) {
+function PackageCard({ pkg, formatPrice, onViewPackage }) {
     const flight = typeof pkg.flight === 'object' ? pkg.flight : null;
     let flightStr = null;
     let airlineCode = null;
@@ -315,11 +315,29 @@ function PackageCard({ pkg, formatPrice }) {
             </div>
 
             {/* Action Bottom */}
-            <div style={{ padding: '0 24px 24px' }}>
+            <div style={{ padding: '0 24px 24px', display: 'flex', gap: 10 }}>
+                {onViewPackage && (
+                    <button
+                        onClick={() => onViewPackage(pkg._id || pkg.id)}
+                        style={{
+                            flex: 1, padding: '14px 0',
+                            background: '#fff',
+                            color: 'var(--primary)', border: '2px solid var(--primary)', borderRadius: 14,
+                            fontSize: 13, fontWeight: 800, cursor: 'pointer',
+                            fontFamily: 'inherit',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                            transition: 'all 0.2s',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#EFF6FF'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}
+                    >
+                        View Details
+                    </button>
+                )}
                 <button
-                    onClick={() => window.open('https://wa.me/92300000000?text=' + encodeURIComponent(`I'm interested in the ${pkg.title} package`), '_blank')}
+                    onClick={() => onViewPackage ? onViewPackage(pkg._id || pkg.id) : window.open('https://wa.me/92300000000?text=' + encodeURIComponent(`I'm interested in the ${pkg.title} package`), '_blank')}
                     style={{
-                        width: '100%', padding: 16,
+                        flex: onViewPackage ? 1 : undefined, width: onViewPackage ? undefined : '100%', padding: 16,
                         background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))',
                         color: '#fff', border: 'none', borderRadius: 14,
                         fontSize: 14, fontWeight: 700, cursor: 'pointer',
@@ -331,7 +349,7 @@ function PackageCard({ pkg, formatPrice }) {
                     onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(20,126,251,0.35)'; }}
                     onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(20,126,251,0.25)'; }}
                 >
-                    Inquire Now
+                    {onViewPackage ? 'Book Now' : 'Inquire Now'}
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="9 18 15 12 9 6" />
                     </svg>

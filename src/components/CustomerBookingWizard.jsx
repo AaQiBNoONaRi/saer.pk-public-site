@@ -624,19 +624,51 @@ export default function CustomerBookingWizard({ pkg, onBack, onDone }) {
                             {/* Bank form */}
                             {paymentMethod === 'bank' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                                    <Field label="Bank Name *" error={pay3Errors.bankName}>
+                                    {/* ORG bank account — read-only send-to info */}
+                                    {bankAccounts.length > 0 ? (
+                                        <div style={{ background: 'linear-gradient(135deg,#EFF6FF,#DBEAFE)', border: '1.5px solid #BFDBFE', borderRadius: 14, padding: '16px 18px' }}>
+                                            <p style={{ fontSize: 10, fontWeight: 900, color: '#1D4ED8', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 10px 0' }}>🏛️ Send Payment To This Account</p>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                                <div>
+                                                    <p style={{ fontSize: 10, fontWeight: 800, color: '#64748B', margin: '0 0 2px 0' }}>BANK NAME</p>
+                                                    <p style={{ fontSize: 14, fontWeight: 900, color: '#1E293B', margin: 0 }}>{bankAccounts[0].bank_name || '—'}</p>
+                                                </div>
+                                                <div>
+                                                    <p style={{ fontSize: 10, fontWeight: 800, color: '#64748B', margin: '0 0 2px 0' }}>ACCOUNT TITLE</p>
+                                                    <p style={{ fontSize: 14, fontWeight: 900, color: '#1E293B', margin: 0 }}>{bankAccounts[0].account_title || '—'}</p>
+                                                </div>
+                                                <div style={{ gridColumn: '1/-1' }}>
+                                                    <p style={{ fontSize: 10, fontWeight: 800, color: '#64748B', margin: '0 0 2px 0' }}>ACCOUNT NUMBER</p>
+                                                    <p style={{ fontSize: 16, fontWeight: 900, color: '#1D4ED8', margin: 0, letterSpacing: '1px' }}>{bankAccounts[0].account_number || '—'}</p>
+                                                </div>
+                                                {bankAccounts[0].iban && (
+                                                    <div style={{ gridColumn: '1/-1' }}>
+                                                        <p style={{ fontSize: 10, fontWeight: 800, color: '#64748B', margin: '0 0 2px 0' }}>IBAN</p>
+                                                        <p style={{ fontSize: 13, fontWeight: 800, color: '#475569', margin: 0, letterSpacing: '0.5px' }}>{bankAccounts[0].iban}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div style={{ background: '#F8FAFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '12px 16px' }}>
+                                            <p style={{ fontSize: 12, fontWeight: 600, color: '#64748B', margin: 0 }}>Loading bank details…</p>
+                                        </div>
+                                    )}
+
+                                    <p style={{ fontSize: 11, fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.8px', margin: '4px 0 0 0' }}>Your Transfer Details (Proof)</p>
+                                    <Field label="Your Bank Name *" error={pay3Errors.bankName}>
                                         <input style={inputStyle}
                                             value={paymentForm.bankName}
                                             onChange={e => setPaymentForm(f => ({ ...f, bankName: e.target.value }))}
                                             placeholder="e.g. HBL / Meezan Bank" />
                                     </Field>
-                                    <Field label="Account Title *" error={pay3Errors.accountTitle}>
+                                    <Field label="Your Account Title *" error={pay3Errors.accountTitle}>
                                         <input style={inputStyle}
                                             value={paymentForm.accountTitle}
                                             onChange={e => setPaymentForm(f => ({ ...f, accountTitle: e.target.value }))}
                                             placeholder="e.g. Muhammad Ali" />
                                     </Field>
-                                    <Field label="Account Number *" error={pay3Errors.accountNumber}>
+                                    <Field label="Your Account Number *" error={pay3Errors.accountNumber}>
                                         <input style={inputStyle}
                                             value={paymentForm.accountNumber}
                                             onChange={e => setPaymentForm(f => ({ ...f, accountNumber: e.target.value }))}

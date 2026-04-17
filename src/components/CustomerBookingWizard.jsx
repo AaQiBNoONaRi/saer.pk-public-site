@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import React, { useState, useEffect } from 'react';
 
-const API = 'http://localhost:8000';
+const API = 'https://api.saer.pk';
 const PKR = (v) => `Rs. ${Number(v || 0).toLocaleString()}`;
 
 const TITLES = ['MR', 'MRS', 'MS', 'MSTR', 'MISS'];

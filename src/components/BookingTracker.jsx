@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const API = 'http://localhost:8000/api/flight-search';
+const API = 'http://127.0.0.1:8000/api/flight-search';
 
 function fmt(n) { return Number(n || 0).toLocaleString(); }
 

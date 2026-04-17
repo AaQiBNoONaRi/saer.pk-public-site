@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const API = 'http://localhost:8000/api/flight-search';
+const API = 'http://127.0.0.1:8000/api/flight-search';
 const COUNTRIES = [
     { code: 'PK', name: 'Pakistan' }, { code: 'AE', name: 'UAE' }, { code: 'SA', name: 'Saudi Arabia' },
     { code: 'US', name: 'United States' }, { code: 'GB', name: 'United Kingdom' }, { code: 'IN', name: 'India' },
@@ -118,10 +118,28 @@ function PassengerForm({ index, paxType, data, onChange, errors }) {
 
 function FareSummary({ flight, searchParams, validated }) {
     const raw = flight?.rawData || {};
-    const fare = validated?.validatedFare || raw.fare || {};
+
+    let fare = validated?.validatedFare;
+    if (!fare) {
+        const chosenBrand = flight?.chosenBrand;
+        if (chosenBrand) {
+            const tp = chosenBrand.totalPrice || chosenBrand.price || chosenBrand.total || Number(flight?.totalPrice) || 0;
+            const bp = chosenBrand.baseFare || chosenBrand.basePrice || Number(raw.fare?.base) || 0;
+            const tx = chosenBrand.tax || chosenBrand.totalTax || Number(raw.fare?.taxAmount) || 0;
+            fare = {
+                total: Number(tp),
+                base: Number(bp) || (Number(tp) - Number(tx)),
+                taxAmount: Number(tx) || (Number(tp) - Number(bp)),
+                currency: chosenBrand.currency || flight?.currency || 'PKR'
+            };
+        } else {
+            fare = raw.fare || {};
+        }
+    }
+
     const total = fare.total || flight?.totalPrice || 0;
-    const base = fare.base || 0;
-    const tax = fare.taxAmount || (total - base);
+    const base = fare.base || fare.baseFare || 0;
+    const tax = fare.taxAmount || fare.taxes || (total > 0 && base > 0 ? (total - base) : 0) || 0;
     const currency = flight?.currency || fare.currency || 'PKR';
     const fmt = n => Number(n || 0).toLocaleString();
     const travelers = searchParams?.travelers || {};
@@ -262,29 +280,97 @@ export default function BookingForm({ flight, validatedData, searchParams, onCom
             const ttMap = { oneway: 'O', return: 'R', roundtrip: 'R', multicity: 'M' };
             const tt = ttMap[tripType] || 'O';
 
-            const passengers = [
+            const passengersAll = [
                 ...adults.map(p => ({ ...p, paxType: 'ADT' })),
                 ...children.map(p => ({ ...p, paxType: 'CHD' })),
                 ...infants.map(p => ({ ...p, paxType: 'INF' })),
             ];
 
-            const res = await fetch(`${API}/book`, {
+            const raw = flight?.rawData || {};
+            let fare = validated?.validatedFare;
+            if (!fare) {
+                const chosenBrand = flight?.chosenBrand;
+                if (chosenBrand) {
+                    const tp = chosenBrand.totalPrice || chosenBrand.price || chosenBrand.total || Number(flight?.totalPrice) || 0;
+                    const bp = chosenBrand.baseFare || chosenBrand.basePrice || Number(raw.fare?.base) || 0;
+                    const tx = chosenBrand.tax || chosenBrand.totalTax || Number(raw.fare?.taxAmount) || 0;
+                    fare = {
+                        total: Number(tp),
+                        base: Number(bp) || (Number(tp) - Number(tx)),
+                        taxAmount: Number(tx) || (Number(tp) - Number(bp)),
+                        currency: chosenBrand.currency || flight?.currency || 'PKR'
+                    };
+                } else {
+                    fare = raw.fare || {};
+                }
+            }
+
+            const total = fare.total || flight?.totalPrice || 0;
+            const base = fare.base || fare.baseFare || 0;
+            const tax = fare.taxAmount || fare.taxes || (total > 0 && base > 0 ? (total - base) : 0) || 0;
+            const currency = flight?.currency || fare.currency || 'PKR';
+
+            const segments = [];
+            let primaryAirline = flight?.airline || flight?.validatingCarrier;
+
+            (raw.ondPairs || []).forEach(ond => {
+                const segs = ond.segments || ond.flightDetails || [];
+                segs.forEach(fd => {
+                    const f = fd.flifo || fd || {};
+                    const loc = f.location || f || {};
+                    const dt = f.dateTime || f || {};
+                    const flightNo = f.flightNumber || f.flightNo || f.mktgAirlineDetails?.flightNumber || 'Unknown';
+                    const depAirport = loc.depAirport || 'Unknown';
+                    const arrAirport = loc.arrAirport || 'Unknown';
+
+                    if (!primaryAirline && (f.mktgAirline || f.mktgAirlineDetails?.airlineCode || f.operAirline || f.issuingAirline)) {
+                        primaryAirline = f.mktgAirline || f.mktgAirlineDetails?.airlineCode || f.operAirline || f.issuingAirline;
+                    }
+
+                    let cab = flight?.cabin || 'Economy';
+                    if (typeof f.cabin === 'string') cab = f.cabin;
+                    else if (Array.isArray(f.cabin) && f.cabin.length > 0) cab = f.cabin[0].type || cab;
+
+                    const bList = f.baggageAllowance || [];
+                    let bag = '';
+                    if (Array.isArray(bList) && bList.length > 0) bag = `${bList[0].value} ${bList[0].unit}`;
+                    else if (typeof f.baggageAllowance === 'string') bag = f.baggageAllowance;
+
+                    segments.push({
+                        flight_no: String(flightNo),
+                        departure_airport: String(depAirport),
+                        arrival_airport: String(arrAirport),
+                        departure_time: `${dt.depDate || ''} ${dt.depTime || ''}`.trim(),
+                        arrival_time: `${dt.arrDate || ''} ${dt.arrTime || ''}`.trim(),
+                        cabin: String(cab),
+                        baggage: String(bag)
+                    });
+                });
+            });
+
+            const res = await fetch(`http://127.0.0.1:8000/api/public/flight-booking/create`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    rawData: flight.rawData,
-                    supplierCode: flight.supplierCode,
-                    supplierSpecific: flight.supplierSpecific,
-                    validatedSupplierSpecific: validated?.supplierSpecific ?? null,
-                    sealed: validated?.sealed ?? null,
-                    passengers,
-                    adt, chd, inf, tripType: tt,
+                    airline: primaryAirline || 'Unknown',
+                    segments: segments,
+                    selected_fare_type: flight?.chosenBrand?.brandName || flight?.chosenBrand?.name || 'Base Fare',
+                    base_fare: base,
+                    taxes: tax,
+                    total_price: total,
+                    currency: currency,
+                    passengers: {
+                        adults: adt,
+                        children: chd,
+                        infants: inf,
+                        details: passengersAll
+                    }
                 }),
             });
 
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'Booking failed');
-            onComplete({ ...data, passengers, flight, searchParams, validatedData: validated });
+            onComplete({ ...data, passengers: passengersAll, flight, searchParams, validatedData: validated });
         } catch (err) {
             setBookError(err.message || 'Booking failed. Please try again.');
         } finally {

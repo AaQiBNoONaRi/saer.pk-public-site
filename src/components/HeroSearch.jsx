@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import PublicPackagesList from './PublicPackagesList';
 
-const API = 'http://localhost:8000/api/flight-search';
+const API = 'http://127.0.0.1:8000/api/flight-search';
 
 // ── Airport autocomplete helper ──────────────────────────────────────────────
 const POPULAR = [

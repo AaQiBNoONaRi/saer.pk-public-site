@@ -3,7 +3,7 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 import PublicForm from './PublicForm';
 import Navbar from './Navbar';
 
-const API = 'http://localhost:8000/api/forms/public';
+const API = 'http://127.0.0.1:8000/api/forms/public';
 
 export default function StandaloneFormPage({ slug, onBack }) {
     const [form, setForm] = useState(null);

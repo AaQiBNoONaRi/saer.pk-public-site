@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, User, ArrowRight } from 'lucide-react';
 
-const API = 'http://localhost:8000/api/blogs/public';
+const API = 'http://127.0.0.1:8000/api/blogs/public';
 
 export default function BlogList({ onReadArticle }) {
     const [blogs, setBlogs] = useState([]);

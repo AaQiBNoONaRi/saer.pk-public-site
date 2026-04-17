@@ -4,24 +4,34 @@ import { jsPDF } from 'jspdf';
 function fmt(n) { return Number(n || 0).toLocaleString(); }
 
 export default function BookingConfirmation({ result, flight, searchParams, onNewSearch }) {
-    const confirmed = result?.pnr || result?.bookingRefId || result?.status === 'HK';
+    const confirmed = result?.pnr || result?.bookingRefId || result?.status === 'HK' || result?.success;
     const pnr = result?.pnr || '—';
-    const ref = result?.bookingRefId || '—';
+    const ref = result?.bookingRefId || result?.booking_id || '—';
     const locator = result?.airlineLocator || '—';
-    const status = result?.status || 'HK';
+    const status = result?.status || (result?.success ? 'Pending' : 'HK');
     const passengers = result?.passengers || [];
+    
+    // Extract the actual flight object (may be nested inside result if passed via onComplete)
+    const flightObj = result?.flight || flight;
 
-    // Extract fare: prefer validated fare from result, then rawData fare
+    // Extract fare: prefer validated fare from result, then chosenBrand, then rawData fare
     const validatedFare = result?.validatedData?.validatedFare || null;
-    const rawFare = result?.flight?.rawData?.fare || flight?.rawData?.fare || {};
-    const fare = validatedFare || rawFare;
+    let chosenFare = null;
+    if (flightObj?.chosenBrand) {
+        const cTotal = flightObj.chosenBrand.total || flightObj.chosenBrand.price || (Number(flightObj.chosenBrand.baseFare || 0) + Number(flightObj.chosenBrand.tax || 0)) || flightObj?.totalPrice;
+        chosenFare = {
+            total: cTotal,
+            base: Number(flightObj.chosenBrand.baseFare) || (cTotal - (Number(flightObj.chosenBrand.tax)||0)),
+            taxAmount: Number(flightObj.chosenBrand.tax) || 0,
+            currency: flightObj.chosenBrand.currency || flightObj?.currency || 'PKR'
+        };
+    }
+    const rawFare = flightObj?.rawData?.fare || {};
+    const fare = validatedFare || chosenFare || rawFare;
     const currency = fare?.currency || 'PKR';
     const total = fare?.total || 0;
     const baseFare = fare?.baseFare || fare?.base || 0;
-    const taxAmount = fare?.tax || fare?.taxAmount || 0;
-
-    // Extract the actual flight object (may be nested inside result if passed via onComplete)
-    const flightObj = result?.flight || flight;
+    const taxAmount = fare?.tax || fare?.taxAmount || (total > 0 && baseFare > 0 ? total - baseFare : 0) || 0;
 
     // Extract from nested segments structure: segments[0].flights[0] = first leg
     const segments = flightObj?.segments || [];
@@ -187,7 +197,7 @@ export default function BookingConfirmation({ result, flight, searchParams, onNe
                     {confirmed ? 'Booking Confirmed!' : 'Booking Submitted'}
                 </h1>
                 <p style={{ fontSize: 16, opacity: 0.9, margin: 0 }}>
-                    {confirmed ? 'Your flight is booked. Check your email for full itinerary.' : 'Processing your booking. You will receive confirmation shortly.'}
+                    {result?.message || (confirmed ? 'Your flight is booked. Check your email for full itinerary.' : 'Your booking request has been submitted')}
                 </p>
             </div>
 

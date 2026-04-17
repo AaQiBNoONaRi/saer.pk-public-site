@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const API = 'http://localhost:8000/api/packages/public/list';
+const API = 'https://api.saer.pk/api/packages/public/list';
 
 export default function PublicPackagesList({ onBack, compact = false, onViewPackage }) {
     const [packages, setPackages] = useState([]);

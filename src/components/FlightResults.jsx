@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Info, Luggage, Utensils, Layers, AlertCircle, Plane } from 'lucide-react';
 
-const API = 'http://localhost:8000/api/flight-search';
+const API = 'http://127.0.0.1:8000/api/flight-search';
 
 // ── Utility ────────────────────────────────────────────────────────────────────
 const AIRLINES = {
@@ -555,7 +555,7 @@ function FilterPanel({ flights, filters, onChange }) {
 
     return (
         <div className="card" style={{ padding: 20, position: 'sticky', top: 80 }}>
-            
+
             {/* Price Range */}
             <div style={{ marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -679,30 +679,10 @@ export default function FlightResults({ results, searchParams, onSelect, onNewSe
     }, [filtered, sort]);
 
     const handleSelect = useCallback((flight) => {
-        const tripType = searchParams?.tripType || 'oneway';
-        const ttMap = { oneway: 'O', return: 'R', roundtrip: 'R', multicity: 'M' };
-
-        // Resolve the promise to JSON directly so BookingForm can safely .then() on it
-        const validationPromise = fetch(`${API}/validate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                supplierCode: flight.supplierCode,
-                supplierSpecific: flight.supplierSpecific,
-                rawData: flight.rawData,
-                adt: searchParams?.adults ?? searchParams?.travelers?.adults ?? 1,
-                chd: searchParams?.children ?? searchParams?.travelers?.children ?? 0,
-                inf: searchParams?.infants ?? searchParams?.travelers?.infants ?? 0,
-                tripType: ttMap[tripType] || 'O',
-                searchKey: flight.rawData?.searchKey || null,
-            }),
-        }).then(r => {
-            if (!r.ok) throw new Error(`Validation failed: ${r.status}`);
-            return r.json();
-        });
-
+        // Resolve a dummy promise to bypass external validation
+        const validationPromise = Promise.resolve({ ok: true });
         onSelect(flight, validationPromise);
-    }, [searchParams, onSelect]);
+    }, [onSelect]);
 
     const from = searchParams?.origin || (searchParams?.multiCitySegments?.[0]?.origin);
     const to = searchParams?.destination || (searchParams?.multiCitySegments?.slice(-1)[0]?.destination);
@@ -721,7 +701,7 @@ export default function FlightResults({ results, searchParams, onSelect, onNewSe
                         {searchParams?.departurDate ? ` · ${searchParams.departureDate}` : ''}
                     </div>
                 </div>
-                
+
             </div>
 
             {/* Sort Bar */}

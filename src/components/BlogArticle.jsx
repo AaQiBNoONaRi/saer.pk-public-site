@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { User, Calendar, Tag, ArrowLeft, Play, Image as ImageIcon, Share2, Twitter, Facebook, Link as LinkIcon, ChevronRight } from 'lucide-react';
 import PublicForm from './PublicForm';
 
-const API = 'http://localhost:8000/api/blogs/public';
-const FORMS_API = 'http://localhost:8000/api/forms/public';
+const API = 'http://127.0.0.1:8000/api/blogs/public';
+const FORMS_API = 'http://127.0.0.1:8000/api/forms/public';
 
 export default function BlogArticle({ slug, onBack }) {
     const [article, setArticle] = useState(null);
@@ -23,7 +23,8 @@ export default function BlogArticle({ slug, onBack }) {
                 setArticle(data);
                 // Fetch linked forms if there's an article ID
                 if (data._id) {
-                    fetch(`${FORMS_API}/getByBlog/${data._id}`)
+                    const categoryParam = data.category ? `?category=${encodeURIComponent(data.category)}` : '';
+                    fetch(`${FORMS_API}/getByBlog/${data._id}${categoryParam}`)
                         .then(res => res.ok ? res.json() : [])
                         .then(formsData => setLinkedForms(formsData))
                         .catch(err => console.error("Failed to fetch forms:", err));
@@ -236,30 +237,7 @@ export default function BlogArticle({ slug, onBack }) {
                                 <User size={40} />
                             </div>
                             <h3 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>{article.author || 'SAER Team'}</h3>
-                            <p style={{ fontSize: 14, color: '#64748b', margin: '0 0 24px', lineHeight: 1.6 }}>Frequent contributor to the SAER blog, bringing you the latest updates and guides.</p>
-                            <button style={{ width: '100%', padding: '12px', background: '#f8fafc', color: '#0f172a', border: '1px solid #e2e8f0', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
-                                onMouseOver={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
-                                onMouseOut={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#e2e8f0'; }}>
-                                View Profile
-                            </button>
-                        </div>
-
-                        {/* Share Widget */}
-                        <div style={{ background: '#fff', borderRadius: 24, padding: 24, boxShadow: '0 10px 30px rgba(15,23,42,0.04)', border: '1px solid #f1f5f9' }}>
-                            <h3 style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                                <Share2 size={16} color="#64748b" /> Share Article
-                            </h3>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                <button style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', background: '#f0fdf4', color: '#166534', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = '#dcfce7'} onMouseOut={e => e.currentTarget.style.background = '#f0fdf4'}>
-                                    WhatsApp
-                                </button>
-                                <button style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', background: '#eff6ff', color: '#1e40af', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = '#dbeafe'} onMouseOut={e => e.currentTarget.style.background = '#eff6ff'}>
-                                    Facebook
-                                </button>
-                                <button style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = '#f8fafc'}>
-                                    <LinkIcon size={16} /> Copy URL
-                                </button>
-                            </div>
+                            <p style={{ fontSize: 14, color: '#64748b', margin: '0', lineHeight: 1.6 }}>Frequent contributor to the SAER blog, bringing you the latest updates and guides.</p>
                         </div>
 
                         {/* Tags / Topics Widget */}

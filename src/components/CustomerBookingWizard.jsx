@@ -578,11 +578,15 @@ export default function CustomerBookingWizard({ pkg, onBack, onDone }) {
                             <h3 style={{ fontSize: 15, fontWeight: 900, color: '#1E293B', margin: '0 0 18px 0' }}>How to Pay</h3>
 
                             {/* Method tabs */}
-                            <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
-                                {[['transfer', '🏦 Transfer'], ['bank', '🏛️ Bank']].map(([k, l]) => (
+                            <div style={{ display: 'flex', gap: 10, marginBottom: 24, flexWrap: 'wrap' }}>
+                                {[
+                                    ['transfer', '🏦 Transfer'], 
+                                    ['bank', '🏛️ Bank'],
+                                    ['agent', '👤 Local Agent']
+                                ].map(([k, l]) => (
                                     <button key={k} onClick={() => { setPaymentMethod(k); setPay3Errors({}); }}
                                         style={{
-                                            flex: 1, padding: '12px 0', borderRadius: 12,
+                                            flex: 1, minWidth: 100, padding: '12px 0', borderRadius: 12,
                                             border: `2px solid ${paymentMethod === k ? '#147EFB' : '#E2E8F0'}`,
                                             background: paymentMethod === k ? '#EFF6FF' : '#fff',
                                             color: paymentMethod === k ? '#1D4ED8' : '#64748B',
@@ -592,6 +596,35 @@ export default function CustomerBookingWizard({ pkg, onBack, onDone }) {
                                     </button>
                                 ))}
                             </div>
+
+                            {/* Agent Selection logic */}
+                            {paymentMethod === 'agent' && (
+                                <div style={{ animation: 'fadeIn 0.4s ease-out' }}>
+                                    {/* Generic Instructions for Agent flow */}
+                                    <div style={{ background: '#EFF6FF', borderRadius: 20, padding: '24px', border: '1px solid #BFDBFE' }}>
+                                        <div style={{ fontSize: 40, marginBottom: 16, textAlign: 'center' }}>🏙️</div>
+                                        <p style={{ fontSize: 16, fontWeight: 900, color: '#1E3A8A', textAlign: 'center', marginBottom: 24 }}>Pay via Local Agent</p>
+                                        
+                                        <p style={{ fontSize: 12, fontWeight: 800, color: '#1E40AF', margin: '0 0 12px 0' }}>How it works:</p>
+                                        <ul style={{ margin: 0, padding: '0 0 0 20px', fontSize: 13, fontWeight: 700, color: '#1E3A8A', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                            <li>Take your **Booking Reference: {createdBooking.booking_reference}** to any of our authorized local Area Agents.</li>
+                                            <li>You can pay them in Cash or through their preferred local method.</li>
+                                            <li>The agent will instantly settle your booking on our platform using this reference code.</li>
+                                        </ul>
+                                        
+                                        <button 
+                                            onClick={() => setStep(4)} // Success screen
+                                            style={{
+                                                width: '100%', marginTop: 32, padding: '18px 0', borderRadius: 16,
+                                                background: '#1E293B', color: '#fff', fontSize: 13, fontWeight: 900,
+                                                textTransform: 'uppercase', letterSpacing: '1px', border: 'none', cursor: 'pointer'
+                                            }}
+                                        >
+                                            Confirm & Finish
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Transfer form */}
                             {paymentMethod === 'transfer' && (
@@ -700,23 +733,55 @@ export default function CustomerBookingWizard({ pkg, onBack, onDone }) {
                                 </div>
                             ) : (
                                 <>
-                                    {paySubmitError && (
-                                        <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '10px 14px', marginTop: 12 }}>
-                                            <p style={{ color: '#DC2626', fontSize: 13, fontWeight: 700, margin: 0 }}>⚠️ {paySubmitError}</p>
-                                        </div>
+                                    {paymentMethod !== 'agent' && (
+                                        <>
+                                            {paySubmitError && (
+                                                <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '10px 14px', marginTop: 12 }}>
+                                                    <p style={{ color: '#DC2626', fontSize: 13, fontWeight: 700, margin: 0 }}>⚠️ {paySubmitError}</p>
+                                                </div>
+                                            )}
+                                            <button
+                                                onClick={handlePaymentSubmit}
+                                                disabled={paySubmitting}
+                                                style={{ ...primaryBtn, marginTop: 16, opacity: paySubmitting ? 0.7 : 1, cursor: paySubmitting ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                {paySubmitting ? '⏳ Submitting…' : '💳 Submit Payment'}
+                                            </button>
+                                        </>
                                     )}
-                                    <button
-                                        onClick={handlePaymentSubmit}
-                                        disabled={paySubmitting}
-                                        style={{ ...primaryBtn, marginTop: 16, opacity: paySubmitting ? 0.7 : 1, cursor: paySubmitting ? 'not-allowed' : 'pointer' }}
-                                    >
-                                        {paySubmitting ? '⏳ Submitting…' : '💳 Submit Payment'}
-                                    </button>
                                     <button onClick={() => window.location.reload()} style={{ background: 'none', border: 'none', width: '100%', textAlign: 'center', marginTop: 10, fontSize: 12, fontWeight: 700, color: '#94A3B8', cursor: 'pointer' }}>
-                                        Or book another package
+                                        {paymentMethod === 'agent' ? 'Return to search' : 'Or book another package'}
                                     </button>
                                 </>
                             )}
+                        </div>
+                    </div>
+                )}
+
+                {/* ─── STEP 4: AGENT FLOW SUCCESS ─── */}
+                {step === 4 && createdBooking && (
+                    <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
+                        <div style={{ ...commonCardStyle, background: 'linear-gradient(135deg, #1E293B, #0F172A)', border: 'none', textAlign: 'center', padding: '60px 32px', marginBottom: 16 }}>
+                            <div style={{ fontSize: 64, marginBottom: 16 }}>🤝</div>
+                            <h2 style={{ color: '#fff', fontSize: 24, fontWeight: 900, margin: '0 0 8px 0' }}>All Set!</h2>
+                            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 600, margin: '0 0 32px 0' }}>Contact your agent to complete payment.</p>
+                            
+                            <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 24, padding: '24px', border: '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}>
+                                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: 12 }}>Your Details</p>
+                                <div style={{ display: 'grid', gap: 16 }}>
+                                    <div>
+                                        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 9, fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Booking Reference</p>
+                                        <p style={{ color: '#fff', fontSize: 20, fontWeight: 900, letterSpacing: '1px' }}>{createdBooking.booking_reference}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button 
+                                onClick={() => window.location.reload()} 
+                                style={{ ...primaryBtn, background: '#fff', color: '#1E293B', marginTop: 32 }}
+                            >
+                                Finish & Exit
+                            </button>
                         </div>
                     </div>
                 )}
